@@ -1,0 +1,17 @@
+.user-form__form-element {
+  display:block;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 17px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  margin: 0 auto 30px;
+  padding: 0;
+  height: 26px;
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: #000;
+  color: #fff
+}

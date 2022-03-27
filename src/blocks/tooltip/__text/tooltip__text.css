@@ -1,0 +1,8 @@
+.tooltip__text {
+    font-weight: 900;
+    font-size: 24px;
+    line-height: 29.05px;
+    max-width: 358px;
+    margin: 0 auto 60px;
+    text-align: center;
+}
