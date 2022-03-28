@@ -16,6 +16,7 @@ import Login from './Login';
 import Register from './Register';
 import InfoTooltip from './InfoTooltip';
 import authApi from '../utils/authApi';
+import ProtectedRoute from './ProtectedRoute';
 
 function App() {
 
@@ -30,32 +31,61 @@ function App() {
   const [ removedCard, setRemovedCard ] = React.useState({});
   const [ isInfoTooltipOpen, setIsInfoTooltipOpen ] = React.useState( false );
   const [ loggedIn, setLoggedIn ] = React.useState( false );
-  const [ email, setEmail ] = React.useState("");
+  const [ email, setEmail ] = React.useState( "" );
+  const [ message, setMessage ] = React.useState( "" );
+  const [ hasSuccess, setHasSuccess ] = React.useState( false );
 
-  React.useEffect( () => {
-    const jwt = localStorage.getItem('JWT')
+  React.useEffect(() => {
+    const jwt = localStorage.getItem( 'JWT' );
     api.getData()
       .then( ( [ userInform, cards ] ) => {
         setCurrentUser( userInform );
         setCardList( cards );
       })
-      .catch( err => console.log(`Ошибка загрузки данных: ${err}` ) )
+      .catch( err => console.log(`Ошибка загрузки данных: ${err}` ) );
     authApi.isSigned( jwt )
       .then( res => {
-        setEmail( res.email )
-        setLoggedIn( true )
-        console.log( email )
+        setEmail( res.data.email );
+        setLoggedIn( true );
       })
       .catch( err => {
-        console.log(err)
+        setLoggedIn( false );
       })
   }, [])
 
-  function handleSingUpClick( email, password ) {
+  function handleSignUpClick( email, password ) {
     authApi.signUp( email, password )
       .then( res => {
-        console.log( res )
+        setEmail( res.data.email );
+        setMessage( 'Вы успешно зарегистрировались!' );
+        setIsInfoTooltipOpen( true );
+        setHasSuccess( true );
       })
+      .catch(() => {
+        setMessage( 'Что-то пошло не так! Попробуйте ещё раз.' );
+        setHasSuccess( false );
+        setIsInfoTooltipOpen( true );
+      })
+  }
+
+  function handleSignInClick( email, password, history ) {
+    authApi.signIn( email, password )
+      .then( res => {
+        setEmail( email );
+        setLoggedIn( true );
+        localStorage.setItem( 'JWT', res.token )
+        history.push( '/' );
+      })
+      .catch(() => {
+        setMessage( 'Что-то пошло не так! Попробуйте ещё раз.' );
+        setHasSuccess( false );
+        setIsInfoTooltipOpen( true );
+      })
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('JWT');
+    setLoggedIn( false );
   }
   
   function handleEditProfileClick() {
@@ -72,7 +102,7 @@ function App() {
 
   function handleRemoveCardClick( card ) {
     setIsRemovePopupOpen( true );
-    setRemovedCard( card )
+    setRemovedCard( card );
   }
 
   function handleCardClick( card ) {
@@ -86,6 +116,7 @@ function App() {
     setIsAddPlacePopupOpen( false );
     setIsSelectedCard( false );
     setIsRemovePopupOpen( false );
+    setIsInfoTooltipOpen( false );
   }
 
   function handleUpdateUser({ name, about }) {
@@ -103,8 +134,7 @@ function App() {
   function handleCardLike( card ) {
     const isLiked = card.likes.some(i => i._id === currentUser._id);
     let method = '';
-    if ( isLiked ) method = 'DELETE'
-    else method = 'PUT'
+    method = isLiked ? 'DELETE' : 'PUT'
     api.setLikePhoto( card._id, method )
     .then( ( newCard ) => {
       setCardList( ( state ) => state.map( ( c ) => c._id === card._id ? newCard : c ) );
@@ -129,9 +159,16 @@ function App() {
 
   return (
     <div className="page">
-      <Header />
+      <Header
+        email={ email }
+        loggedIn={ loggedIn }
+        handleLogout={ handleLogout }
+      />
       <Switch>
-        <Route exact path="/">
+        <ProtectedRoute
+          exact path="/"
+          loggedIn={ loggedIn }
+        >
           <CurrentUserContext.Provider value={ currentUser }>
             <CardsContext.Provider value= { cardList }>
               <Main 
@@ -178,21 +215,29 @@ function App() {
             onRemoveCard={ handleCardDelete }
           >
           </RemovePopup>
-        </Route>
+        </ProtectedRoute>
         <Route path="/sign-up">
-          <Register singUpClick={ handleSingUpClick }/>
+          <Register
+            signUpClick={ handleSignUpClick }
+            loggedIn={ loggedIn }
+          />
           <InfoTooltip 
-            hasSuccess={ true }
-            text="Вы успешно зарегистрировались!"
+            hasSuccess={ hasSuccess }
+            text={ message }
             isOpen={ isInfoTooltipOpen }
+            onClose={ closeAllPopups }
           />
         </Route>
         <Route path="/sign-in">
-          <Login />
+          <Login
+            signInClick={ handleSignInClick }
+            loggedIn={ loggedIn }
+          />
           <InfoTooltip 
-            hasSuccess={ true }
-            text="Вы успешно зарегистрировались!"
+            hasSuccess={ hasSuccess }
+            text={ message }
             isOpen={ isInfoTooltipOpen }
+            onClose={ closeAllPopups }
           />
         </Route>
       </Switch>

@@ -49,3 +49,5 @@
 @import url(./blocks/register/__yet/register__yet.css);
 @import url(./blocks/tooltip/__image/tooltip__image.css);
 @import url(./blocks/tooltip/__text/tooltip__text.css);
+@import url(./blocks/header/__button/header__button.css);
+@import url(./blocks/header/__email/header__email.css);

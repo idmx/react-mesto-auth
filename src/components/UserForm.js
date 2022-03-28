@@ -5,8 +5,8 @@ export default function UserForm( props ) {
   const [ password, setPassword ] = React.useState("");
 
   const handleSubmit = ( evt ) => {
-    evt.preventDefault()
-    props.singUpClick( email, password )
+    evt.preventDefault();
+    props.signClick( email, password );
   }
 
   return (
