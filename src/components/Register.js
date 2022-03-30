@@ -11,12 +11,16 @@ export default function Register( props ) {
     props.loggedIn && history.push( '/' )
   }, [ props.loggedIn ])
 
+  function signClick( email, password ) {
+    props.signUpClick( email, password, history );
+  }
+
   return(
     <div className="register__container">
       <UserForm
         title="Регистрация"
         button="Зарегистрироваться"
-        signClick={ props.signUpClick }
+        signClick={ signClick }
       >
         <p className="register__yet">
           Уже зарегистрированы?

@@ -37,13 +37,7 @@ function App() {
 
   React.useEffect(() => {
     const jwt = localStorage.getItem( 'JWT' );
-    api.getData()
-      .then( ( [ userInform, cards ] ) => {
-        setCurrentUser( userInform );
-        setCardList( cards );
-      })
-      .catch( err => console.log(`Ошибка загрузки данных: ${err}` ) );
-    authApi.isSigned( jwt )
+    jwt && authApi.isSigned( jwt )
       .then( res => {
         setEmail( res.data.email );
         setLoggedIn( true );
@@ -51,15 +45,22 @@ function App() {
       .catch( err => {
         setLoggedIn( false );
       })
-  }, [])
+    loggedIn && api.getData()
+      .then( ( [ userInform, cards ] ) => {
+        setCurrentUser( userInform );
+        setCardList( cards );
+      })
+      .catch( err => console.log(`Ошибка загрузки данных: ${err}` ) );
+  }, [ loggedIn ])
 
-  function handleSignUpClick( email, password ) {
+  function handleSignUpClick( email, password, history ) {
     authApi.signUp( email, password )
       .then( res => {
         setEmail( res.data.email );
         setMessage( 'Вы успешно зарегистрировались!' );
-        setIsInfoTooltipOpen( true );
         setHasSuccess( true );
+        history.push( '/sign-in' );
+        setIsInfoTooltipOpen( true );
       })
       .catch(() => {
         setMessage( 'Что-то пошло не так! Попробуйте ещё раз.' );
@@ -83,6 +84,7 @@ function App() {
       })
   }
 
+  //Удаляем токен, разлогиниваемся, перенаправляем на страницу входа в Header
   function handleLogout() {
     localStorage.removeItem('JWT');
     setLoggedIn( false );
